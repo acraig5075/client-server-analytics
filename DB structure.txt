@@ -1,0 +1,14 @@
+InstanceTbl
+-----------
+instanceID
+licenseCode
+computerName
+dateTime
+
+TerrainTbl
+----------
+terrainID
+instanceID
+command
+count
+
