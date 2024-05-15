@@ -6,6 +6,7 @@
 #include <sqlite3.h>
 #include <iostream>
 #include <filesystem>
+#include <cxxopts.hpp>
 #include "ProducerConsumer.h"
 #include "..\Utilities\SqlUtils.h"
 
@@ -94,8 +95,8 @@ int Connection::counter_ = 0;
 class Server
 {
 public:
-	Server(boost::asio::io_service &io, ProducerConsumer &pc)
-		: acceptor_(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 13))
+	Server(boost::asio::io_service &io, boost::asio::ip::port_type port, ProducerConsumer &pc)
+		: acceptor_(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 		, m_pc(pc)
 	{
 		start_accept();
@@ -124,11 +125,28 @@ private:
 };
 
 
-int main()
+int main(int argc, char *argv[])
 {
-	std::filesystem::path dbPath = R"(analytics.db)";
+	cxxopts::Options options("serverba.exe", "Analytics server, by Alasdair Craig");
+	options.add_options()
+		("p,port", "Server port", cxxopts::value<unsigned short>()->default_value("54321"))
+		("f,filename", "Sqlite target [filename]", cxxopts::value<std::string>()->default_value("analytics.db"))
+		("c,create", "Create filename, or overwrite if existing")
+		("h,help", "Print usage");
 
-	if (std::filesystem::exists(dbPath))
+	auto params = options.parse(argc, argv);
+
+	if (params.count("help"))
+		{
+		std::cout << options.help() << std::endl;
+		exit(0);
+		}
+
+	unsigned short port = params["port"].as<unsigned short>();
+	std::filesystem::path dbPath = params["filename"].as<std::string>();
+	bool create = params.count("create") != 0;
+
+	if (create && std::filesystem::exists(dbPath))
 		{
 		std::error_code ec;
 		if (!std::filesystem::remove(dbPath, ec))
@@ -149,19 +167,22 @@ int main()
 		return (-1);
 		}
 
-	::sqlite3_exec(db, CreateInstanceTable().c_str(), nullptr, nullptr, nullptr);
-	::sqlite3_exec(db, CreateModuleTable("SurveyTbl").c_str(), nullptr, nullptr, nullptr);
-	::sqlite3_exec(db, CreateModuleTable("TerrainTbl").c_str(), nullptr, nullptr, nullptr);
-	::sqlite3_exec(db, CreateModuleTable("RoadTbl").c_str(), nullptr, nullptr, nullptr);
-	::sqlite3_exec(db, CreateModuleTable("SewerTbl").c_str(), nullptr, nullptr, nullptr);
-	::sqlite3_exec(db, CreateModuleTable("StormTbl").c_str(), nullptr, nullptr, nullptr);
-	::sqlite3_exec(db, CreateModuleTable("WaterTbl").c_str(), nullptr, nullptr, nullptr);
-	::sqlite3_exec(db, CreateModuleTable("SignageTbl").c_str(), nullptr, nullptr, nullptr);
+	if (create)
+		{
+		::sqlite3_exec(db, CreateInstanceTable().c_str(), nullptr, nullptr, nullptr);
+		::sqlite3_exec(db, CreateModuleTable("SurveyTbl").c_str(), nullptr, nullptr, nullptr);
+		::sqlite3_exec(db, CreateModuleTable("TerrainTbl").c_str(), nullptr, nullptr, nullptr);
+		::sqlite3_exec(db, CreateModuleTable("RoadTbl").c_str(), nullptr, nullptr, nullptr);
+		::sqlite3_exec(db, CreateModuleTable("SewerTbl").c_str(), nullptr, nullptr, nullptr);
+		::sqlite3_exec(db, CreateModuleTable("StormTbl").c_str(), nullptr, nullptr, nullptr);
+		::sqlite3_exec(db, CreateModuleTable("WaterTbl").c_str(), nullptr, nullptr, nullptr);
+		::sqlite3_exec(db, CreateModuleTable("SignageTbl").c_str(), nullptr, nullptr, nullptr);
+		}
 
 	ProducerConsumer pc(db);
 
 	boost::asio::io_service io;
-	Server server(io, pc);
+	Server server(io, port, pc);
 	io.run();
 
 	return 0;

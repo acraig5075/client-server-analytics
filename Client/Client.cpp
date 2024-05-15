@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <boost\asio.hpp>
 #include <Windows.h>
+#include <cxxopts.hpp>
 #include "..\Utilities\Analytics.h"
 #include "..\Utilities\Commands.h"
 
@@ -22,7 +23,7 @@ std::string MakeDaytimeString()
 	return std::string(buf);
 }
 
-void send(const Analytics &analytics)
+void send(const std::string &server, const std::string &port, const Analytics &analytics)
 {
 	std::string str = analytics.ToJson();
 
@@ -31,10 +32,16 @@ void send(const Analytics &analytics)
 	boost::asio::io_context io_context;
 
 	tcp::resolver resolver(io_context);
-	auto endpoints = resolver.resolve("127.0.0.1", "13");
+	auto endpoints = resolver.resolve(server, port);
 
 	tcp::socket socket(io_context);
 	boost::asio::connect(socket, endpoints);
+
+	if (!socket.is_open())
+		{
+		std::cout << "Failed to connect.\n";
+		return;
+		}
 
 	boost::system::error_code error;
 	socket.write_some(boost::asio::buffer(&str.c_str()[0], str.length()), error);
@@ -59,14 +66,28 @@ void send(const Analytics &analytics)
 
 int main(int argc, char *argv[])
 {
-	size_t count = 5; // Number of commands per module to simulate
+	cxxopts::Options options("client.exe", "Analytics client simulator, by Alasdair Craig");
+	options.add_options()
+		("s,server", "Server address", cxxopts::value<std::string>()->default_value("127.0.0.1"))
+		("p,port", "Server port", cxxopts::value<std::string>()->default_value("54321"))
+		("c,commands", "Number of commands per module to simulate", cxxopts::value<int>()->default_value("5"))
+		("e,sends", "Number of simultaneous sends to simulate", cxxopts::value<int>()->default_value("4"))
+		("w,wait", "Wait interval (in seconds) between successive sends", cxxopts::value<long>()->default_value("1"))
+		("h,help", "Print usage");
 
-	if (argc > 1)
+	auto params = options.parse(argc, argv);
+
+	if (params.count("help"))
 		{
-		int param = std::atoi(argv[1]);
-		if (param > 0)
-			count = param;
+		std::cout << options.help() << std::endl;
+		exit(0);
 		}
+
+	std::string server = params["server"].as<std::string>();
+	std::string port = params["port"].as<std::string>();
+	int count = params["commands"].as<int>();
+	int sends = params["sends"].as<int>();
+	long wait = params["wait"].as<long>();
 
 	int total = 0;
 
@@ -76,7 +97,7 @@ int main(int argc, char *argv[])
 
 		while (exit == false)
 			{
-			auto SendThreadFunc = [count]()
+			auto SendThreadFunc = [count, server, port]()
 				{
 				// Collection of commands as analytics
 				Analytics analytics;
@@ -89,21 +110,17 @@ int main(int argc, char *argv[])
 				analytics.AddCommands(SIGNAGE_ID, GetCommandSelection(SIGNAGE_ID, count));
 				analytics.GatherUsage();
 
-				//std::string data = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
-				//std::string data = "short";
-
 				// Send the stream to the server
-				send(analytics);
+				send(server, port, analytics);
 				};
 
-			int numSends = 4;
-			for (int tid = 0; tid < numSends; ++tid)
+			for (int tid = 0; tid < sends; ++tid)
 				{
 				std::thread(SendThreadFunc).detach();
 				total++;
 				}
 
-			std::this_thread::sleep_for(std::chrono::seconds(1));
+			std::this_thread::sleep_for(std::chrono::seconds(wait));
 
 			//exit = true;
 
