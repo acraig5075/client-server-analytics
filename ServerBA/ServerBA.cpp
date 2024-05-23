@@ -7,6 +7,7 @@
 #include <iostream>
 #include <filesystem>
 #include <cxxopts.hpp>
+#include <mysql\jdbc.h>
 #include "ProducerConsumer.h"
 #include "..\Utilities\SqlUtils.h"
 
@@ -129,9 +130,11 @@ int main(int argc, char *argv[])
 {
 	cxxopts::Options options("serverba.exe", "Analytics server, by Alasdair Craig");
 	options.add_options()
-		("p,port", "Server port", cxxopts::value<unsigned short>()->default_value("54321"))
-		("f,filename", "Sqlite target [filename]", cxxopts::value<std::string>()->default_value("analytics.db"))
-		("c,create", "Create filename, or overwrite if existing")
+		("l,listen", "Server port to listen on", cxxopts::value<unsigned short>()->default_value("54321"))
+		("t,target", "Target database [mysql|sqlite]", cxxopts::value<std::string>()->default_value("mysql"))
+		("m,mysql", "MySQL target [server]", cxxopts::value<std::string>()->default_value("localhost"))
+		("s,sqlite", "Sqlite target [filename]", cxxopts::value<std::string>()->default_value("analytics.db"))
+		("c,create", "Create sqlite filename, or overwrite if existing")
 		("h,help", "Print usage");
 
 	auto params = options.parse(argc, argv);
@@ -142,48 +145,119 @@ int main(int argc, char *argv[])
 		exit(0);
 		}
 
-	unsigned short port = params["port"].as<unsigned short>();
-	std::filesystem::path dbPath = params["filename"].as<std::string>();
+	unsigned short port = params["listen"].as<unsigned short>();
+	std::string target = params["target"].as<std::string>();
+	std::string dbserver = params["mysql"].as<std::string>();
+	std::filesystem::path dbpath = params["sqlite"].as<std::string>();
 	bool create = params.count("create") != 0;
 
-	if (create && std::filesystem::exists(dbPath))
+	// Two optional targets, having one is mandatory
+	sql::Connection *mysql = nullptr;
+	sqlite3 *sqlite = nullptr;
+
+	if (target == "mysql")
 		{
-		std::error_code ec;
-		if (!std::filesystem::remove(dbPath, ec))
+		std::string error;
+		try
 			{
-			std::cerr
-				<< "Unable to remove existing database\n"
-				<< ec.message()
-				<< "\n";
+			sql::Driver *driver = get_driver_instance();
+			if (driver)
+				{
+				mysql = driver->connect(dbserver.c_str(), "root", "Back2Reality");
+				mysql->setSchema("Analytics");
+				}
+			}
+		catch (sql::SQLException &e)
+			{
+			error = e.what();
+			}
+
+		if (mysql && mysql->isValid() && error.empty())
+			{
+			std::cout << "MySQL database OK ... yes\n";
+			}
+		else
+			{
+			std::cout 
+				<< "MySQL database OK ... no\n"
+				<< "Error: "
+				<< error
+				<< "\nAborting.\n";
+			return EXIT_FAILURE;
 			}
 		}
-
-	sqlite3 *db = nullptr;
-	int error = sqlite3_open(dbPath.string().c_str(), &db);
-
-	if (error)
+	else if (target == "sqlite")
 		{
-		std::cerr << "Error open DB " << sqlite3_errmsg(db) << "\n";
-		return (-1);
+		if (create && std::filesystem::exists(dbpath))
+			{
+			std::error_code ec;
+			if (!std::filesystem::remove(dbpath, ec))
+				{
+				std::cerr
+					<< "Unable to remove existing sqlite database\n"
+					<< ec.message()
+					<< "\n";
+				}
+			}
+
+		int error = sqlite3_open(dbpath.string().c_str(), &sqlite);
+
+		if (error == 0)
+			std::cout << "Sqlite database OK ... yes\n";
+		else
+			{
+			std::cerr 
+				<< "Sqlite database OK ... no\n" 
+				<< "Error: " 
+				<< sqlite3_errmsg(sqlite)
+				<< "\nAborting.\n";
+			return EXIT_FAILURE;
+			}
+
+		if (create)
+			{
+			::sqlite3_exec(sqlite, CreateInstanceTable().c_str(), nullptr, nullptr, nullptr);
+			::sqlite3_exec(sqlite, CreateModuleTable("SurveyTbl").c_str(), nullptr, nullptr, nullptr);
+			::sqlite3_exec(sqlite, CreateModuleTable("TerrainTbl").c_str(), nullptr, nullptr, nullptr);
+			::sqlite3_exec(sqlite, CreateModuleTable("RoadTbl").c_str(), nullptr, nullptr, nullptr);
+			::sqlite3_exec(sqlite, CreateModuleTable("SewerTbl").c_str(), nullptr, nullptr, nullptr);
+			::sqlite3_exec(sqlite, CreateModuleTable("StormTbl").c_str(), nullptr, nullptr, nullptr);
+			::sqlite3_exec(sqlite, CreateModuleTable("WaterTbl").c_str(), nullptr, nullptr, nullptr);
+			::sqlite3_exec(sqlite, CreateModuleTable("SignageTbl").c_str(), nullptr, nullptr, nullptr);
+			}
+		}
+	else
+		{
+		std::cout << "No valid target specified\nAborting.\n";
+		return EXIT_FAILURE;
 		}
 
-	if (create)
+	std::cout << "Starting consumer ...\n";
+
+	ProducerConsumer *pc = nullptr; // TODO: Make stack variable if sqlite support is removed.
+
+	if (mysql)
+		pc = new ProducerConsumer(mysql);
+	else if (sqlite)
+		pc = new ProducerConsumer(sqlite);
+
+	std::cout << "Listening on port " << port << " ...\n";
+
+	try
 		{
-		::sqlite3_exec(db, CreateInstanceTable().c_str(), nullptr, nullptr, nullptr);
-		::sqlite3_exec(db, CreateModuleTable("SurveyTbl").c_str(), nullptr, nullptr, nullptr);
-		::sqlite3_exec(db, CreateModuleTable("TerrainTbl").c_str(), nullptr, nullptr, nullptr);
-		::sqlite3_exec(db, CreateModuleTable("RoadTbl").c_str(), nullptr, nullptr, nullptr);
-		::sqlite3_exec(db, CreateModuleTable("SewerTbl").c_str(), nullptr, nullptr, nullptr);
-		::sqlite3_exec(db, CreateModuleTable("StormTbl").c_str(), nullptr, nullptr, nullptr);
-		::sqlite3_exec(db, CreateModuleTable("WaterTbl").c_str(), nullptr, nullptr, nullptr);
-		::sqlite3_exec(db, CreateModuleTable("SignageTbl").c_str(), nullptr, nullptr, nullptr);
+		boost::asio::io_service io;
+		Server server(io, port, *pc);
+		io.run();
+		}
+	catch (std::exception &ex)
+		{
+		std::cout << ex.what() << "\n";
 		}
 
-	ProducerConsumer pc(db);
+	std::cout << "Ending.\n";
 
-	boost::asio::io_service io;
-	Server server(io, port, pc);
-	io.run();
+	delete pc;
+	delete mysql;
 
 	return 0;
 }
