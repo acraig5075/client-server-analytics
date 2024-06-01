@@ -9,6 +9,8 @@
 #include <json11.hpp>
 
 
+std::string FormattedCurrentTime();
+
 static std::unordered_map<ModuleID, std::string> moduleNames =
 {
 	{ SURVEY_ID,  "Survey" },

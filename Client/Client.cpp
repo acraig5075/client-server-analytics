@@ -14,15 +14,6 @@
 
 using boost::asio::ip::tcp;
 
-std::string MakeDaytimeString()
-{
-	char buf[100];
-	SYSTEMTIME st;
-	GetLocalTime(&st); // Local time
-	sprintf(buf, "%.2u:%.2u:%.2u", st.wHour, st.wMinute, st.wSecond);
-	return std::string(buf);
-}
-
 void send(const std::string &server, const std::string &port, const Analytics &analytics)
 {
 	std::string str = analytics.ToJson();
@@ -91,6 +82,8 @@ int main(int argc, char *argv[])
 
 	int total = 0;
 
+	std::string startTime = FormattedCurrentTime();
+
 	try
 		{
 		bool exit = false;
@@ -130,7 +123,12 @@ int main(int argc, char *argv[])
 			//std::cout << "Press <Esc> to exit\n";
 			}
 
-		std::cout << "Total sent = " << total << "\n";
+		std::string endTime = FormattedCurrentTime();
+
+		std::cout 
+			<< "Start time = " << startTime << "\n"
+			<< "End time = " << endTime << "\n"
+			<< "Total sent = " << total << "\n";
 		}
 	catch (std::exception &e)
 		{

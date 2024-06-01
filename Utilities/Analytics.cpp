@@ -108,7 +108,7 @@ std::string Analytics::ToString() const
 	return str;
 }
 
-std::string Now()
+std::string FormattedCurrentTime()
 {
 	auto now = std::chrono::system_clock::now();
 
@@ -127,7 +127,7 @@ std::string Analytics::ToJson() const
 		arrModules.push_back(m_data[i].ToJson());
 		}
 
-	std::string dateTime = Now();
+	std::string dateTime = FormattedCurrentTime();
 
 	json11::Json::object obj =
 		{
