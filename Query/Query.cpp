@@ -22,24 +22,16 @@ static const std::vector<std::string> tableNames =
 };
 
 
-void ConnectToDatabase(std::shared_ptr<sql::Connection> &connection)
+void ConnectToDatabase(const std::string &hostName, const std::string &userName, const std::string &password, std::shared_ptr<sql::Connection> &connection)
 {
 	// Attempt to establish a connection
 	sql::Driver *driver = get_driver_instance();
 	if (driver)
 		{
-		sql::ConnectOptionsMap optionsKB;
-		optionsKB["hostName"] = "10.10.15.3";
-		optionsKB["userName"] = "internal";
-		optionsKB["password"] = "FuckFace";
-		optionsKB["schema"] = "KnowledgeBase";
-		optionsKB["port"] = 3306;
-		optionsKB["OPT_CONNECT_TIMEOUT"] = 5;
-
 		sql::ConnectOptionsMap options;
-		options["hostName"] = "localhost";
-		options["userName"] = "root";
-		options["password"] = "Back2Reality";
+		options["hostName"] = hostName;
+		options["userName"] = userName;
+		options["password"] = password;
 		options["schema"] = "Analytics";
 		options["OPT_CONNECT_TIMEOUT"] = 5;
 
@@ -154,11 +146,13 @@ int main(int argc, char *argv[])
 {
 	cxxopts::Options options("query.exe [stats|since]", "Analytics server queries, by Alasdair Craig");
 	options.add_options()
-	("n,hostname", "MySQL hostname", cxxopts::value<std::string>()->default_value("localhost"))
-	("s,stats", "Print in-use usage stats")
-	("l,limit", "Limit in-use usage stats to top n records", cxxopts::value<int>()->default_value("3"))
-	("r,since", "Print new record counts since [timestamp (\"YYYY-MM-DD HH:MM:SS\")]", cxxopts::value<std::string>())
-	("h,help", "Print usage");
+		("m,mysql", "MySQL target [server]", cxxopts::value<std::string>()->default_value("localhost"))
+		("u,user", "MySQL user [user]", cxxopts::value<std::string>()->default_value(""))
+		("p,pass", "MySQL password [pass]", cxxopts::value<std::string>()->default_value(""))
+		("s,stats", "Print in-use usage stats")
+		("l,limit", "Limit in-use usage stats to top n records", cxxopts::value<int>()->default_value("3"))
+		("r,since", "Print new record counts since [timestamp (\"YYYY-MM-DD HH:MM:SS\")]", cxxopts::value<std::string>())
+		("h,help", "Print usage");
 
 	auto params = options.parse(argc, argv);
 
@@ -168,7 +162,9 @@ int main(int argc, char *argv[])
 		exit(EXIT_SUCCESS);
 		}
 
-	std::string hostName = params["hostname"].as<std::string>();
+	std::string dbserver = params["mysql"].as<std::string>();
+	std::string dbuser = params["user"].as<std::string>();
+	std::string dbpass = params["pass"].as<std::string>();
 	bool usedStats = params.count("stats") > 0;
 	int limit = params["limit"].as<int>();
 	std::string timestamp = params.count("since") > 0 ? params["since"].as<std::string>() : "";
@@ -179,7 +175,7 @@ int main(int argc, char *argv[])
 
 	try
 		{
-		ConnectToDatabase(connection);
+		ConnectToDatabase(dbserver, dbuser, dbpass, connection);
 		std::cout << "MySQL connection ... yes\n";
 		}
 	catch (sql::SQLException &ex)

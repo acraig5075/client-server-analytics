@@ -133,6 +133,8 @@ int main(int argc, char *argv[])
 		("l,listen", "Server port to listen on", cxxopts::value<unsigned short>()->default_value("54321"))
 		("t,target", "Target database [mysql|sqlite]", cxxopts::value<std::string>()->default_value("mysql"))
 		("m,mysql", "MySQL target [server]", cxxopts::value<std::string>()->default_value("localhost"))
+		("u,user", "MySQL user [user]", cxxopts::value<std::string>()->default_value(""))
+		("p,pass", "MySQL password [pass]", cxxopts::value<std::string>()->default_value(""))
 		("s,sqlite", "Sqlite target [filename]", cxxopts::value<std::string>()->default_value("analytics.db"))
 		("c,create", "Create sqlite filename, or overwrite if existing")
 		("h,help", "Print usage");
@@ -148,6 +150,8 @@ int main(int argc, char *argv[])
 	unsigned short port = params["listen"].as<unsigned short>();
 	std::string target = params["target"].as<std::string>();
 	std::string dbserver = params["mysql"].as<std::string>();
+	std::string dbuser = params["user"].as<std::string>();
+	std::string dbpass = params["pass"].as<std::string>();
 	std::filesystem::path dbpath = params["sqlite"].as<std::string>();
 	bool create = params.count("create") != 0;
 
@@ -163,7 +167,7 @@ int main(int argc, char *argv[])
 			sql::Driver *driver = get_driver_instance();
 			if (driver)
 				{
-				mysql = driver->connect(dbserver.c_str(), "root", "Back2Reality");
+				mysql = driver->connect(dbserver.c_str(), dbuser.c_str(), dbpass.c_str());
 				mysql->setSchema("Analytics");
 				}
 			}
