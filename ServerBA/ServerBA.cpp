@@ -7,9 +7,11 @@
 #include <iostream>
 #include <filesystem>
 #include <cxxopts.hpp>
-#include <mysql\jdbc.h>
+#include <mysql_connection.h>
+#include <mysql_driver.h>
+#include <cppconn/prepared_statement.h>
 #include "ProducerConsumer.h"
-#include "..\Utilities\SqlUtils.h"
+#include "../Utilities/SqlUtils.h"
 
 
 const size_t BUF_SIZE = 100;

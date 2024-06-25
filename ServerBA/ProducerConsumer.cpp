@@ -1,5 +1,5 @@
 #include "ProducerConsumer.h"
-#include "..\Utilities\SqlUtils.h"
+#include "../Utilities/SqlUtils.h"
 #include <iostream>
 #include <sqlite3.h>
 

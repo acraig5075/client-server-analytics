@@ -7,7 +7,9 @@
 #include <chrono>
 #include <vector>
 #include <string>
-#include <mysql\jdbc.h>
+#include <mysql_connection.h>
+#include <mysql_driver.h>
+#include <cppconn/prepared_statement.h>
 #include <cxxopts.hpp>
 
 static const std::vector<std::string> tableNames =

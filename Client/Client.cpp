@@ -5,11 +5,11 @@
 #include <chrono>
 #include <ctime>
 #include <algorithm>
-#include <boost\asio.hpp>
+#include <boost/asio.hpp>
 #include <Windows.h>
 #include <cxxopts.hpp>
-#include "..\Utilities\Analytics.h"
-#include "..\Utilities\Commands.h"
+#include "../Utilities/Analytics.h"
+#include "../Utilities/Commands.h"
 
 
 using boost::asio::ip::tcp;

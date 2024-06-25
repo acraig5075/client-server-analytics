@@ -5,7 +5,8 @@
 #include <format>
 #include <json11.hpp>
 #include <sqlite3.h>
-#include <mysql\jdbc.h>
+#include <mysql_connection.h>
+#include <cppconn/prepared_statement.h>
 
 
 static std::vector<std::pair<std::string, std::string>> tableNames =
