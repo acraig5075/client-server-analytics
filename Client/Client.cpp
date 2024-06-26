@@ -6,11 +6,13 @@
 #include <ctime>
 #include <algorithm>
 #include <boost/asio.hpp>
-#include <Windows.h>
 #include <cxxopts.hpp>
 #include "../Utilities/Analytics.h"
 #include "../Utilities/Commands.h"
 
+#if defined(_WIN32_WINNT)
+#include <Windows.h>
+#endif
 
 using boost::asio::ip::tcp;
 
@@ -117,10 +119,11 @@ int main(int argc, char *argv[])
 
 			//exit = true;
 
-			// Continue until Esc press
+			// Continue until <Esc> or <Ctrl-C> press
+#if defined(_WIN32_WINNT)
 			if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
 				exit = true;
-			//std::cout << "Press <Esc> to exit\n";
+#endif
 			}
 
 		std::string endTime = FormattedCurrentTime();

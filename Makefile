@@ -1,44 +1,11 @@
 # Compiler and linker flags
-CXX=g++
-CXXFLAGS=-std=c++20 -Wall
-LDFLAGS=-lmysqlcppconn
-
-# Path to the MySQL Connector/C++ library
-MYSQL_CPPCONN_PATH=/usr/local/mysql/lib # Adjust this path according to your setup
-
-# Target executable name
-TARGET=myapp
-
-# Source files
-SRCS=main.cpp
-
-# Object files
-OBJS=$(SRCS:.cpp=.o)
-
-all: $(TARGET)
-
-$(TARGET): $(OBJS)
-	$(CXX) $(OBJS) -o $@ $(LDFLAGS) -L$(MYSQL_CPPCONN_PATH)
-
-.cpp.o:
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-clean:
-	rm -f $(OBJS) $(TARGET)
-
-
-
-
-# Compiler and linker flags
 CXX = g++
-CXXFLAGS = -Iinclude -Wall
-LDFLAGS = -L/usr/local/mysql/lib -lmysqlcppconn -L. -lutilities
-
-# Path to the MySQL Connector/C++ library
-MYSQL_CPPCONN_PATH=/usr/local/mysql/lib # Adjust this path according to your setup
+CXXFLAGS = -std=c++20 -I/usr/include -I/usr/local/include -Wall
+LDFLAGS = -L/usr/lib -L/usr/local/lib -Lbin -lsqlite3 -lmysqlcppconn -ljson11 -l:utilities.a
+LDFLAGS_QUERY = -L/usr/lib -lmysqlcppconn
 
 # Paths to source files
-UTILITIES_SRC = Utilities/pch.cpp Utilities/Analytics.cpp Utilities/Commands.cpp Utilities/SqlUtils.cpp Utilities/Utilities.cpp 
+UTILITIES_SRC = Utilities/pch.cpp Utilities/Commands.cpp Utilities/Analytics.cpp Utilities/SqlUtils.cpp
 CLIENT_SRC = Client/Client.cpp
 SERVER_SRC = ServerBA/ProducerConsumer.cpp ServerBA/ServerBA.cpp 
 QUERY_SRC = Query/Query.cpp
@@ -50,12 +17,12 @@ SERVER_OBJ = $(SERVER_SRC:.cpp=.o)
 QUERY_OBJ = $(QUERY_SRC:.cpp=.o)
 
 # Name of the library
-UTILITIES_LIB = utilities.a
+UTILITIES_LIB = bin/utilities.a
 
 # Name of the executables
-CLIENT_EXE = client
-SERVER_EXE = serverba
-QUERY_EXE = query
+CLIENT_EXE = bin/client
+SERVER_EXE = bin/serverba
+QUERY_EXE = bin/query
 
 .PHONY: all clean utilities client server query
 
@@ -68,13 +35,13 @@ client: $(CLIENT_OBJ)
 	$(CXX) $(CLIENT_OBJ) -o $(CLIENT_EXE) $(LDFLAGS)
 
 server: $(SERVER_OBJ)
-	$(CXX) $(SERVER_OBJ) -o $(SERVER_EXE) $(LDFLAGS) -L$(MYSQL_CPPCONN_PATH)
+	$(CXX) $(SERVER_OBJ) -o $(SERVER_EXE) $(LDFLAGS)
 
 query: $(QUERY_OBJ)
-	$(CXX) $(QUERY_OBJ) -o $(QUERY_EXE) $(LDFLAGS) -L$(MYSQL_CPPCONN_PATH)
+	$(CXX) $(QUERY_OBJ) -o $(QUERY_EXE) $(LDFLAGS_QUERY)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(LIB_OBJ) $(MAIN_OBJ) $(UTILITIES_LIB) $(CLIENT_EXE)
+	rm -f $(LIB_OBJ) $(CLIENT_OBJ) $(SERVER_OBJ) $(QUERY_OBJ) $(UTILITIES_LIB) $(CLIENT_EXE) $(SERVER_EXE) $(QUERY_EXE)
