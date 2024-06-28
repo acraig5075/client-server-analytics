@@ -6,7 +6,7 @@
 #include <array>
 #include <unordered_map>
 #include <sstream>
-#include <json11.hpp>
+#include <nlohmann/json.hpp>
 
 
 std::string FormattedCurrentTime();
@@ -32,7 +32,7 @@ public:
 	void GatherUsage();
 
 	std::string ToString() const;
-	json11::Json::object ToJson() const;
+	nlohmann::json ToJson() const;
 
 private:
 	ModuleID m_id = ModuleID::MAX;

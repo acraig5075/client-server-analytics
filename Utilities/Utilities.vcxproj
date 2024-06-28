@@ -123,7 +123,7 @@
     <Lib />
     <Lib>
       <AdditionalLibraryDirectories>..\Libs</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sqlite3.lib;mysqlcppconn.lib;json11-d.lib</AdditionalDependencies>
+      <AdditionalDependencies>sqlite3.lib;mysqlcppconn.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -149,7 +149,7 @@
     <Lib />
     <Lib>
       <AdditionalLibraryDirectories>..\Libs</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sqlite3.lib;mysqlcppconn.lib;json11.lib</AdditionalDependencies>
+      <AdditionalDependencies>sqlite3.lib;mysqlcppconn.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

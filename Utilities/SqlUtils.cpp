@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <format>
-#include <json11.hpp>
+#include <nlohmann/json.hpp>
 #include <sqlite3.h>
 #include <mysql_connection.h>
 #include <cppconn/prepared_statement.h>
@@ -72,22 +72,28 @@ int InsertDatabase(sqlite3 *db, const std::string &jstr)
 	if (!db)
 		return 0;
 
-	std::string error;
-	json11::Json json = json11::Json::parse(jstr, error);
-	if (!error.empty())
-		std::cerr << error << "\n";
+	nlohmann::json json;
+
+	try
+		{
+		json = nlohmann::json::parse(jstr);
+		}
+	catch (nlohmann::json::parse_error &ex)
+		{
+		std::cerr << ex.what() << "\n";
+		}
 
 	std::string sql;
 
 	::sqlite3_exec(db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
 
 	sql = std::format(R"(INSERT INTO InstanceTbl (DateTime, License, PCName, ProgramCode, ProgramVersion, ProgramRelease) VALUES ('{}', '{}', '{}', '{}', {}, {});)",
-		json["datetime"].string_value(),
-		json["code"].string_value(),
-		json["pcname"].string_value(),
-		json["program"].string_value(),
-		json["version"].int_value(),
-		json["release"].int_value()
+		json.at("datetime").template get<std::string>(),
+		json.at("code").template get<std::string>(),
+		json.at("pcname").template get<std::string>(),
+		json.at("program").template get<std::string>(),
+		json.at("version").template get<int>(),
+		json.at("release").template get<int>()
 		);
 
 	sqlite3_int64 instanceID = -1;
@@ -102,12 +108,12 @@ int InsertDatabase(sqlite3 *db, const std::string &jstr)
 
 	int numInserts = 0;
 
-	auto vec = json["analytics"].array_items();
+	nlohmann::json subjson = json["analytics"];
 
-	for (auto &v : vec)
+	for (auto &v : subjson)
 		{
-		std::string moduleName = v["module"].string_value();
-		std::string usage = v["usage"].string_value();
+		std::string moduleName = v.at("module").template get<std::string>();
+		std::string usage = v.at("usage").template get<std::string>();
 
 		std::string tableName = FindTableName(moduleName);
 		if (tableName.empty())
@@ -156,10 +162,16 @@ int InsertDatabase(sql::Connection *db, const std::string &jstr)
 	if (!db)
 		return 0;
 
-	std::string error;
-	json11::Json json = json11::Json::parse(jstr, error);
-	if (!error.empty())
-		std::cerr << error << "\n";
+	nlohmann::json json;
+
+	try
+		{
+		json = nlohmann::json::parse(jstr);
+		}
+	catch (nlohmann::json::parse_error &ex)
+		{
+		std::cerr << ex.what() << "\n";
+		}
 
 	sql::Statement *stmt = nullptr;
 	sql::PreparedStatement *pstmt = nullptr;
@@ -169,12 +181,12 @@ int InsertDatabase(sql::Connection *db, const std::string &jstr)
 	db->setAutoCommit(false); // Starts transaction
 
 	pstmt = db->prepareStatement("INSERT INTO InstanceTbl (DateTime, License, PCName, ProgramCode, ProgramVersion, ProgramRelease) VALUES (?, ?, ?, ?, ?, ?)");
-	pstmt->setString(1, json["datetime"].string_value());
-	pstmt->setString(2, json["code"].string_value());
-	pstmt->setString(3, json["pcname"].string_value());
-	pstmt->setString(4, json["program"].string_value());
-	pstmt->setInt(5, json["version"].int_value());
-	pstmt->setInt(6, json["release"].int_value());
+	pstmt->setString(1, json.at("datetime").template get<std::string>());
+	pstmt->setString(2, json.at("code").template get<std::string>());
+	pstmt->setString(3, json.at("pcname").template get<std::string>());
+	pstmt->setString(4, json.at("program").template get<std::string>());
+	pstmt->setInt(5, json.at("version").template get<int>());
+	pstmt->setInt(6, json.at("release").template get<int>());
 	ok = pstmt->executeUpdate();
 	delete pstmt;
 
@@ -196,12 +208,12 @@ int InsertDatabase(sql::Connection *db, const std::string &jstr)
 
 	int numInserts = 0;
 
-	auto vec = json["analytics"].array_items();
+	nlohmann::json subjson = json["analytics"];
 
-	for (auto &v : vec)
+	for (auto &v : subjson)
 		{
-		std::string moduleName = v["module"].string_value();
-		std::string usage = v["usage"].string_value();
+		std::string moduleName = v.at("module").template get<std::string>();
+		std::string usage = v.at("usage").template get<std::string>();
 
 		std::string tableName = FindTableName(moduleName);
 		if (tableName.empty())

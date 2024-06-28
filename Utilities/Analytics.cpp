@@ -48,22 +48,17 @@ std::string ModuleAnalytics::ToString() const
 	return ss.str();
 }
 
-json11::Json::object ModuleAnalytics::ToJson() const
+nlohmann::json ModuleAnalytics::ToJson() const
 {
 	std::string name = moduleNames[m_id];
 	std::string usage = ToString();
 
-	return json11::Json::object
+	return nlohmann::json
 		{
 			{ "module", name},
 			{ "usage", usage },
 		};
 }
-
-
-
-
-
 
 std::vector<ModuleAnalytics>::iterator Analytics::Find(ModuleID id)
 {
@@ -121,7 +116,7 @@ std::string FormattedCurrentTime()
 
 std::string Analytics::ToJson() const
 {
-	std::vector<json11::Json> arrModules;
+	std::vector<nlohmann::json> arrModules;
 	for (size_t i = 0; i < m_data.size(); ++i)
 		{
 		arrModules.push_back(m_data[i].ToJson());
@@ -129,7 +124,7 @@ std::string Analytics::ToJson() const
 
 	std::string dateTime = FormattedCurrentTime();
 
-	json11::Json::object obj =
+	nlohmann::json obj =
 		{
 			{ "datetime", dateTime },
 			{ "code", gLicenseCode },
@@ -140,5 +135,5 @@ std::string Analytics::ToJson() const
 			{ "analytics", arrModules },
 		};
 
-	return json11::Json(obj).dump();
+	return obj.dump();
 }
