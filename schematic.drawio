@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2024-06-25T13:48:43.885Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" etag="z03GsWOG3887PkxfKtgs" version="24.6.2" type="device">
+<mxfile host="app.diagrams.net" modified="2024-06-28T08:06:16.211Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" etag="PlzJKE-J2OgudlS0EKcu" version="24.6.3" type="device">
   <diagram name="Page-1" id="5mhqRI8VTIk9d_TGpRCZ">
-    <mxGraphModel dx="1723" dy="476" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2863" dy="747" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -157,34 +157,34 @@
             <mxPoint x="-350" y="450" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-1" value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Utilities&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Lib dependency: libmysqlcppconn&lt;br&gt;+ Lib dependency: json11&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Lib dependency: sqlite3&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: &amp;lt;format&amp;gt; (c++20)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-1" value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Utilities&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Lib dependency: libmysqlcppconn&lt;br&gt;+ Lib dependency: json11&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Lib dependency: sqlite3&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: date&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: &amp;lt;format&amp;gt; (c++20)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;" parent="1" vertex="1">
           <mxGeometry x="980" y="160" width="250" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-2" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" vertex="1" parent="5A5ht_u0BlR7RnOHPe7w-1">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-2" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" parent="5A5ht_u0BlR7RnOHPe7w-1" vertex="1">
           <mxGeometry x="1" width="20" height="20" relative="1" as="geometry">
             <mxPoint x="-24" y="4" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.349;entryY=1.007;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="5A5ht_u0BlR7RnOHPe7w-3" target="5A5ht_u0BlR7RnOHPe7w-1">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.349;entryY=1.007;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="5A5ht_u0BlR7RnOHPe7w-3" target="5A5ht_u0BlR7RnOHPe7w-1" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-3" value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Client&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: boost::asio&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: cxxopts&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-3" value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Client&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: boost::asio&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: cxxopts&lt;br&gt;&lt;br&gt;&lt;/p&gt;" style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;" parent="1" vertex="1">
           <mxGeometry x="870" y="410" width="210" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-4" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" vertex="1" parent="5A5ht_u0BlR7RnOHPe7w-3">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-4" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" parent="5A5ht_u0BlR7RnOHPe7w-3" vertex="1">
           <mxGeometry x="1" width="20" height="20" relative="1" as="geometry">
             <mxPoint x="-24" y="4" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-6" value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Server&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ Lib d&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;ependency: libmysqlcppconn&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 8px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ Lib dependency: sqlite3&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 8px;&quot;&gt;+ Header d&lt;span style=&quot;background-color: initial;&quot;&gt;ependency: boost::asio&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 8px;&quot;&gt;+ Header dependency: cxxopts&lt;span style=&quot;background-color: initial;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-6" value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Server&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ Lib d&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;ependency: libmysqlcppconn&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 8px;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;+ Lib dependency: sqlite3&lt;/span&gt;&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 8px;&quot;&gt;+ Header d&lt;span style=&quot;background-color: initial;&quot;&gt;ependency: boost::asio&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin: 0px 0px 0px 8px;&quot;&gt;+ Header dependency: cxxopts&lt;span style=&quot;background-color: initial;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;" parent="1" vertex="1">
           <mxGeometry x="1136" y="400" width="210" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-7" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" vertex="1" parent="5A5ht_u0BlR7RnOHPe7w-6">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-7" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" parent="5A5ht_u0BlR7RnOHPe7w-6" vertex="1">
           <mxGeometry x="1" width="20" height="20" relative="1" as="geometry">
             <mxPoint x="-24" y="4" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1252.52" y="400" as="sourcePoint" />
             <mxPoint x="1160" y="290" as="targetPoint" />
@@ -195,17 +195,22 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-9" value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Query&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Lib dependency: libmysqlcppconn&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: cxxopts&lt;br&gt;&lt;/p&gt;" style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;" vertex="1" parent="1">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-9" value="&lt;p style=&quot;margin:0px;margin-top:6px;text-align:center;&quot;&gt;&lt;b&gt;Query&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Lib dependency: libmysqlcppconn&lt;br&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:8px;&quot;&gt;+ Header dependency: cxxopts&lt;br&gt;&lt;/p&gt;" style="align=left;overflow=fill;html=1;dropTarget=0;whiteSpace=wrap;" parent="1" vertex="1">
           <mxGeometry x="1400" y="415" width="210" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-10" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" vertex="1" parent="5A5ht_u0BlR7RnOHPe7w-9">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-10" value="" style="shape=component;jettyWidth=8;jettyHeight=4;" parent="5A5ht_u0BlR7RnOHPe7w-9" vertex="1">
           <mxGeometry x="1" width="20" height="20" relative="1" as="geometry">
             <mxPoint x="-24" y="4" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="5A5ht_u0BlR7RnOHPe7w-15" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;&lt;u&gt;Project dependencies&lt;/u&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="5A5ht_u0BlR7RnOHPe7w-15" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;&lt;u&gt;Project dependencies&lt;/u&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="1118.5" y="80" width="245" height="30" as="geometry" />
         </mxCell>
+        <UserObject label="my-azure-mysql.mysql.database.azure.com" link="my-azure-mysql.mysql.database.azure.com" id="hkyY0QnbpOqTXCnvB_vb-1">
+          <mxCell style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+            <mxGeometry x="-840" y="1020" width="320" height="30" as="geometry" />
+          </mxCell>
+        </UserObject>
       </root>
     </mxGraphModel>
   </diagram>
