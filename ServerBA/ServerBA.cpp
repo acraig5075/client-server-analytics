@@ -16,10 +16,10 @@
 
 const size_t BUF_SIZE = 100;
 
-class Connection : public std::enable_shared_from_this<Connection>
+class ServerConnection : public std::enable_shared_from_this<ServerConnection>
 {
 public:
-	Connection(const boost::asio::any_io_executor &ex, ProducerConsumer &pc)
+	ServerConnection(const boost::asio::any_io_executor &ex, ProducerConsumer &pc)
 		: socket_(ex)
 		, m_pc(pc)
 	{
@@ -27,26 +27,26 @@ public:
 		std::fill(data_.begin(), data_.end(), '\0');
 	}
 
-	static std::shared_ptr<Connection> create(const boost::asio::any_io_executor &ex, ProducerConsumer &pc)
+	static std::shared_ptr<ServerConnection> Create(const boost::asio::any_io_executor &ex, ProducerConsumer &pc)
 	{
-		return std::shared_ptr<Connection>(new Connection(ex, pc));
+		return std::shared_ptr<ServerConnection>(new ServerConnection(ex, pc));
 	}
 
-	boost::asio::ip::tcp::socket &socket()
+	boost::asio::ip::tcp::socket &GetSocket()
 	{
 		return socket_;
 	}
 
-	void start()
+	void Start()
 	{
 		socket_.async_read_some(boost::asio::buffer(data_),
-														boost::bind(&Connection::handle_read, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+														boost::bind(&ServerConnection::HandleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
 	}
 
 
 private:
 	// Handle the read operation completion.
-	void handle_read(const boost::system::error_code &error, size_t bytes_transferred)
+	void HandleRead(const boost::system::error_code &error, size_t bytes_transferred)
 	{
 		if (!error)
 			{
@@ -56,7 +56,7 @@ private:
 				{
 				// read more
 				socket_.async_read_some(boost::asio::buffer(data_),
-					boost::bind(&Connection::handle_read, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+					boost::bind(&ServerConnection::HandleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
 				}
 			else
 				{
@@ -67,7 +67,7 @@ private:
 
 				// acknowledge the client
 				boost::asio::async_write(socket_, boost::asio::buffer(message_),
-					std::bind(&Connection::handle_write, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
+					std::bind(&ServerConnection::HandleWrite, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
 				}
 			}
 		else
@@ -77,9 +77,9 @@ private:
 	}
 
 	// Handle the write operation completion.
-	void handle_write(const boost::system::error_code & /*error*/, size_t /*bytes_transferred*/)
+	void HandleWrite(const boost::system::error_code & /*error*/, size_t /*bytes_transferred*/)
 	{
-		std::cout << "Tx: Ack" << "\n";
+		std::cout << "Tx: Ack " << counter_ << "\n";
 	}
 
 private:
@@ -92,7 +92,7 @@ private:
 	ProducerConsumer &m_pc;
 };
 
-int Connection::counter_ = 0;
+int ServerConnection::counter_ = 0;
 
 
 class Server
@@ -102,24 +102,24 @@ public:
 		: acceptor_(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 		, m_pc(pc)
 	{
-		start_accept();
+		StartAccept();
 	}
 
-	void start_accept()
+	void StartAccept()
 	{
 		const boost::asio::any_io_executor &ex = acceptor_.get_executor();
-		std::shared_ptr<Connection> connection = Connection::create(ex, m_pc);
-		boost::asio::ip::tcp::socket &socket = connection->socket();
-		acceptor_.async_accept(socket, std::bind(&Server::handle_accept, this, connection, std::placeholders::_1));
+		std::shared_ptr<ServerConnection> connection = ServerConnection::Create(ex, m_pc);
+		boost::asio::ip::tcp::socket &socket = connection->GetSocket();
+		acceptor_.async_accept(socket, std::bind(&Server::HandleAccept, this, connection, std::placeholders::_1));
 	}
 
-	void handle_accept(std::shared_ptr<Connection> connection, const boost::system::error_code &ec)
+	void HandleAccept(std::shared_ptr<ServerConnection> connection, const boost::system::error_code &ec)
 	{
 		if (!ec)
 			{
-			connection->start();
+			connection->Start();
 			}
-		start_accept();
+		StartAccept();
 	}
 
 private:
