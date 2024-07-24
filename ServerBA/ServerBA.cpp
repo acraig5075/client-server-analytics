@@ -135,8 +135,8 @@ int main(int argc, char *argv[])
 		("l,listen", "Server port to listen on", cxxopts::value<unsigned short>()->default_value("54321"))
 		("t,target", "Target database [mysql|sqlite]", cxxopts::value<std::string>()->default_value("mysql"))
 		("m,mysql", "MySQL target [server]", cxxopts::value<std::string>()->default_value("localhost"))
-		("u,user", "MySQL user [user]", cxxopts::value<std::string>()->default_value(""))
-		("p,pass", "MySQL password [pass]", cxxopts::value<std::string>()->default_value(""))
+		("u,user", "MySQL user [user], alternatively env var ANALYTICS_MYSQL_USER", cxxopts::value<std::string>()->default_value(""))
+		("p,pass", "MySQL password [pass], alternatively env var ANALYTICS_MYSQL_PASS", cxxopts::value<std::string>()->default_value(""))
 		("s,sqlite", "Sqlite target [filename]", cxxopts::value<std::string>()->default_value("analytics.db"))
 		("c,create", "Create sqlite filename, or overwrite if existing")
 		("h,help", "Print usage");
@@ -163,14 +163,37 @@ int main(int argc, char *argv[])
 
 	if (target == "mysql")
 		{
+#pragma warning(push)
+#pragma warning(disable: 4996)
+		// Revert to environment variables if not set on command-line
+		if (dbuser.empty())
+			{
+			const char *env = std::getenv("ANALYTICS_MYSQL_USER");
+			if (env)
+				dbuser = env;
+			}
+		if (dbpass.empty())
+			{
+			const char *env = std::getenv("ANALYTICS_MYSQL_PASS");
+			if (env)
+				dbpass = env;
+			}
+#pragma warning(pop)
+
 		std::string error;
 		try
 			{
 			sql::Driver *driver = get_driver_instance();
 			if (driver)
 				{
-				mysql = driver->connect(dbserver.c_str(), dbuser.c_str(), dbpass.c_str());
-				mysql->setSchema("Analytics");
+				sql::ConnectOptionsMap options;
+				options["hostName"] = dbserver;
+				options["userName"] = dbuser;
+				options["password"] = dbpass;
+				options["schema"] = "Analytics";
+				options["OPT_CONNECT_TIMEOUT"] = 5;
+
+				mysql = driver->connect(options);
 				}
 			}
 		catch (sql::SQLException &e)
