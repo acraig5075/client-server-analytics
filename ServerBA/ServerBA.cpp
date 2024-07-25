@@ -19,11 +19,11 @@ class ServerConnection : public std::enable_shared_from_this<ServerConnection>
 {
 public:
 	ServerConnection(const boost::asio::any_io_executor &ex, ProducerConsumer &pc)
-		: socket_(ex)
+		: m_socket(ex)
 		, m_pc(pc)
 	{
-		message_ += std::to_string(++counter_);
-		std::fill(data_.begin(), data_.end(), '\0');
+		m_message += std::to_string(++m_counter);
+		std::fill(m_data.begin(), m_data.end(), '\0');
 	}
 
 	static std::shared_ptr<ServerConnection> Create(const boost::asio::any_io_executor &ex, ProducerConsumer &pc)
@@ -33,12 +33,12 @@ public:
 
 	boost::asio::ip::tcp::socket &GetSocket()
 	{
-		return socket_;
+		return m_socket;
 	}
 
 	void Start()
 	{
-		socket_.async_read_some(boost::asio::buffer(data_),
+		m_socket.async_read_some(boost::asio::buffer(m_data),
 														boost::bind(&ServerConnection::HandleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
 	}
 
@@ -49,12 +49,12 @@ private:
 	{
 		if (!error)
 			{
-			recv_ += std::string{ &data_[0], bytes_transferred };
+			m_recv += std::string{ &m_data[0], bytes_transferred };
 
 			if (bytes_transferred == BUF_SIZE)
 				{
 				// read more
-				socket_.async_read_some(boost::asio::buffer(data_),
+				m_socket.async_read_some(boost::asio::buffer(m_data),
 					boost::bind(&ServerConnection::HandleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
 				}
 			else
@@ -62,10 +62,10 @@ private:
 				std::cout 
 					<< "Rx: OK\n";
 
-				m_pc.Produce(recv_);
+				m_pc.Produce(m_recv);
 
 				// acknowledge the client
-				boost::asio::async_write(socket_, boost::asio::buffer(message_),
+				boost::asio::async_write(m_socket, boost::asio::buffer(m_message),
 					std::bind(&ServerConnection::HandleWrite, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
 				}
 			}
@@ -78,27 +78,27 @@ private:
 	// Handle the write operation completion.
 	void HandleWrite(const boost::system::error_code & /*error*/, size_t /*bytes_transferred*/)
 	{
-		std::cout << "Tx: Ack " << counter_ << "\n";
+		std::cout << "Tx: Ack " << m_counter << "\n";
 	}
 
 private:
-	boost::asio::ip::tcp::socket socket_;
-	std::string message_{ "Ack " };
-	std::string terminal_{ "<END>" };
-	std::array<char, BUF_SIZE> data_;
-	std::string recv_;
-	static int counter_;
+	boost::asio::ip::tcp::socket m_socket;
+	std::string m_message{ "Ack " };
+	std::string m_terminal{ "<END>" };
+	std::array<char, BUF_SIZE> m_data;
+	std::string m_recv;
+	static int m_counter;
 	ProducerConsumer &m_pc;
 };
 
-int ServerConnection::counter_ = 0;
+int ServerConnection::m_counter = 0;
 
 
 class Server
 {
 public:
 	Server(boost::asio::io_service &io, boost::asio::ip::port_type port, ProducerConsumer &pc)
-		: acceptor_(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+		: m_acceptor(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 		, m_pc(pc)
 	{
 		StartAccept();
@@ -106,10 +106,10 @@ public:
 
 	void StartAccept()
 	{
-		const boost::asio::any_io_executor &ex = acceptor_.get_executor();
+		const boost::asio::any_io_executor &ex = m_acceptor.get_executor();
 		std::shared_ptr<ServerConnection> connection = ServerConnection::Create(ex, m_pc);
 		boost::asio::ip::tcp::socket &socket = connection->GetSocket();
-		acceptor_.async_accept(socket, std::bind(&Server::HandleAccept, this, connection, std::placeholders::_1));
+		m_acceptor.async_accept(socket, std::bind(&Server::HandleAccept, this, connection, std::placeholders::_1));
 	}
 
 	void HandleAccept(std::shared_ptr<ServerConnection> connection, const boost::system::error_code &ec)
@@ -122,7 +122,7 @@ public:
 	}
 
 private:
-	boost::asio::ip::tcp::acceptor acceptor_;
+	boost::asio::ip::tcp::acceptor m_acceptor;
 	ProducerConsumer &m_pc;
 };
 
