@@ -5,17 +5,17 @@
 ProducerConsumer::ProducerConsumer(sql::Connection *db)
 	: m_dbm(db)
 {
-	m_thread = std::thread(&ProducerConsumer::consume, this);
+	m_thread = std::thread(&ProducerConsumer::Consume, this);
 }
 
-void ProducerConsumer::produce(const std::string &str)
+void ProducerConsumer::Produce(const std::string &str)
 {
 	std::unique_lock<std::mutex> lock(m_mtx);
 	m_queue.push(str);
 	m_cv.notify_one(); // Notify the consumer thread that new data is available
 }
 
-void ProducerConsumer::consume()
+void ProducerConsumer::Consume()
 {
 	if (!m_dbm)
 		return;
@@ -48,7 +48,7 @@ void ProducerConsumer::consume()
 		}
 }
 
-void ProducerConsumer::stopConsuming()
+void ProducerConsumer::StopConsuming()
 {
 	m_done = true;
 }

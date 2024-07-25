@@ -16,7 +16,7 @@
 
 using boost::asio::ip::tcp;
 
-void send(const std::string &server, const std::string &port, const Analytics &analytics)
+void SendAnalytics(const std::string &server, const std::string &port, const Analytics &analytics)
 {
 	std::string str = analytics.ToJson();
 
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 				analytics.GatherUsage();
 
 				// Send the stream to the server
-				send(server, port, analytics);
+				SendAnalytics(server, port, analytics);
 				};
 
 			for (int tid = 0; tid < sends; ++tid)

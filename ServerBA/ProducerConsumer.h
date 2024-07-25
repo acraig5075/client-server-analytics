@@ -16,9 +16,9 @@ class ProducerConsumer
 public:
 	ProducerConsumer(sql::Connection *db);
 
-	void produce(const std::string &str);
-	void consume();
-	void stopConsuming();
+	void Produce(const std::string &str);
+	void Consume();
+	void StopConsuming();
 
 private:
 	sql::Connection *m_dbm = nullptr;

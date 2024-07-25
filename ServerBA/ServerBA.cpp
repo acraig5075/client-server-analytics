@@ -62,7 +62,7 @@ private:
 				std::cout 
 					<< "Rx: OK\n";
 
-				m_pc.produce(recv_);
+				m_pc.Produce(recv_);
 
 				// acknowledge the client
 				boost::asio::async_write(socket_, boost::asio::buffer(message_),
@@ -152,8 +152,10 @@ int main(int argc, char *argv[])
 
 	sql::Connection *mysql = nullptr;
 
+#if defined(_WIN32_WINNT)
 #pragma warning(push)
 #pragma warning(disable: 4996)
+#endif
 	// Revert to environment variables if not set on command-line
 	if (dbuser.empty())
 		{
@@ -167,7 +169,9 @@ int main(int argc, char *argv[])
 		if (env)
 			dbpass = env;
 		}
+#if defined(_WIN32_WINNT)
 #pragma warning(pop)
+#endif
 
 	std::string error;
 	try
