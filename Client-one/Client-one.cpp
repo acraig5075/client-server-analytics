@@ -15,13 +15,13 @@
 #pragma comment(lib, "ws2_32.lib")
 
 
-int main()
+bool SendAnalytics(const std::string &server, unsigned short port, const Analytics &analytics)
 {
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		{
 		std::cerr << "WSAStartup failed\n";
-		exit(EXIT_FAILURE);
+		return false;
 		}
 
 	// Make the connection
@@ -30,7 +30,7 @@ int main()
 		{
 		std::cerr << "Failed to create socket";
 		WSACleanup();
-		return EXIT_FAILURE;
+		return false;
 		}
 
 	sockaddr_in service;
@@ -43,20 +43,8 @@ int main()
 		std::cerr << "connect failed\n";
 		closesocket(clientSocket);
 		WSACleanup();
-		return EXIT_FAILURE;
+		return false;
 		}
-
-	// Collection of commands as analytics
-	size_t count = 10;
-	Analytics analytics;
-	analytics.AddCommands(SURVEY_ID, GetCommandSelection(SURVEY_ID, count));
-	analytics.AddCommands(TERRAIN_ID, GetCommandSelection(TERRAIN_ID, count));
-	analytics.AddCommands(ROAD_ID, GetCommandSelection(ROAD_ID, count));
-	analytics.AddCommands(SEWER_ID, GetCommandSelection(SEWER_ID, count));
-	analytics.AddCommands(STORM_ID, GetCommandSelection(STORM_ID, count));
-	analytics.AddCommands(WATER_ID, GetCommandSelection(WATER_ID, count));
-	analytics.AddCommands(SIGNAGE_ID, GetCommandSelection(SIGNAGE_ID, count));
-	analytics.GatherUsage();
 
 	// Send message in chunks
 	std::string message = analytics.ToJson();
@@ -93,7 +81,7 @@ int main()
 		std::cerr << "select failed\n";
 		closesocket(clientSocket);
 		WSACleanup();
-		return EXIT_FAILURE;
+		return false;
 		}
 
 	if (FD_ISSET(clientSocket, &readfds))
@@ -108,5 +96,25 @@ int main()
 
 	closesocket(clientSocket);
 	WSACleanup();
+	return true;
+}
+
+
+int main()
+{
+	// Collection of commands as analytics
+	size_t count = 10;
+	Analytics analytics;
+	analytics.AddCommands(SURVEY_ID, GetCommandSelection(SURVEY_ID, count));
+	analytics.AddCommands(TERRAIN_ID, GetCommandSelection(TERRAIN_ID, count));
+	analytics.AddCommands(ROAD_ID, GetCommandSelection(ROAD_ID, count));
+	analytics.AddCommands(SEWER_ID, GetCommandSelection(SEWER_ID, count));
+	analytics.AddCommands(STORM_ID, GetCommandSelection(STORM_ID, count));
+	analytics.AddCommands(WATER_ID, GetCommandSelection(WATER_ID, count));
+	analytics.AddCommands(SIGNAGE_ID, GetCommandSelection(SIGNAGE_ID, count));
+	analytics.GatherUsage();
+
+	int ret = SendAnalytics(SERVER_IP, SERVER_PORT, analytics);
+
 	return 0;
 }
