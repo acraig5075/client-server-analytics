@@ -135,8 +135,7 @@ int main(int argc, char *argv[])
 		("h,host", "MySQL hostname [host]", cxxopts::value<std::string>()->default_value("localhost"))
 		("u,user", "MySQL username [user], alternatively env var ANALYTICS_MYSQL_USER", cxxopts::value<std::string>()->default_value(""))
 		("p,pass", "MySQL password [pass], alternatively env var ANALYTICS_MYSQL_PASS", cxxopts::value<std::string>()->default_value(""))
-		("c,create", "Create sqlite filename, or overwrite if existing")
-		("h,help", "Print usage");
+		("help", "Print usage");
 
 	auto params = options.parse(argc, argv);
 
@@ -147,10 +146,9 @@ int main(int argc, char *argv[])
 		}
 
 	unsigned short port = params["listen"].as<unsigned short>();
-	std::string dbserver = params["mysql"].as<std::string>();
+	std::string dbhost = params["host"].as<std::string>();
 	std::string dbuser = params["user"].as<std::string>();
 	std::string dbpass = params["pass"].as<std::string>();
-	bool create = params.count("create") != 0;
 
 	sql::Connection *mysql = nullptr;
 
@@ -178,13 +176,13 @@ int main(int argc, char *argv[])
 		if (driver)
 			{
 			sql::ConnectOptionsMap options;
-			options["hostName"] = dbserver;
+			options["hostName"] = dbhost;
 			options["userName"] = dbuser;
 			options["password"] = dbpass;
 			options["schema"] = "Analytics";
 			options["OPT_CONNECT_TIMEOUT"] = 5;
 
-			std::cout << "Connecting to MySQL " << dbuser << "@" << dbserver << " ...\n";
+			std::cout << "Connecting to MySQL " << dbuser << "@" << dbhost<< " ...\n";
 			mysql = driver->connect(options);
 			}
 		}
