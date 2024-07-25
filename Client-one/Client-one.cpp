@@ -4,12 +4,11 @@
 #include <iostream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <cxxopts.hpp>
 #include "../Utilities/Analytics.h"
 #include "../Utilities/Commands.h"
 
 
-#define SERVER_IP "127.0.0.1"
-#define SERVER_PORT 54321
 #define ACK_TIMEOUT 5000 // Timeout in milliseconds
 
 #pragma comment(lib, "ws2_32.lib")
@@ -17,6 +16,7 @@
 
 bool SendAnalytics(const std::string &server, unsigned short port, const Analytics &analytics)
 {
+	// Initialise Winsock
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
 		{
@@ -24,7 +24,7 @@ bool SendAnalytics(const std::string &server, unsigned short port, const Analyti
 		return false;
 		}
 
-	// Make the connection
+	// Create a socket for connecting with the server
 	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (clientSocket == INVALID_SOCKET)
 		{
@@ -35,9 +35,10 @@ bool SendAnalytics(const std::string &server, unsigned short port, const Analyti
 
 	sockaddr_in service;
 	service.sin_family = AF_INET;
-	inet_pton(AF_INET, SERVER_IP, &service.sin_addr.s_addr);
-	service.sin_port = htons(SERVER_PORT);
+	inet_pton(AF_INET, server.c_str(), &service.sin_addr.s_addr);
+	service.sin_port = htons(port);
 
+	// Make the connection
 	if (connect(clientSocket, (SOCKADDR *)&service, sizeof(service)) == SOCKET_ERROR)
 		{
 		std::cerr << "connect failed\n";
@@ -100,10 +101,28 @@ bool SendAnalytics(const std::string &server, unsigned short port, const Analyti
 }
 
 
-int main()
+int main(int argc, char *argv[])
 {
+	cxxopts::Options options("client-one.exe", "Analytics client simulator, by Alasdair Craig");
+	options.add_options()
+		("s,server", "Server address", cxxopts::value<std::string>()->default_value("127.0.0.1"))
+		("p,port", "Server port", cxxopts::value<std::string>()->default_value("54321"))
+		("c,commands", "Number of commands per module to simulate", cxxopts::value<int>()->default_value("10"))
+		("h,help", "Print usage");
+
+	auto params = options.parse(argc, argv);
+
+	if (argc == 1 || params.count("help"))
+		{
+		std::cout << options.help() << std::endl;
+		exit(0);
+		}
+
+	std::string server = params["server"].as<std::string>();
+	std::string port = params["port"].as<std::string>();
+	size_t count = params["commands"].as<int>();
+
 	// Collection of commands as analytics
-	size_t count = 10;
 	Analytics analytics;
 	analytics.AddCommands(SURVEY_ID, GetCommandSelection(SURVEY_ID, count));
 	analytics.AddCommands(TERRAIN_ID, GetCommandSelection(TERRAIN_ID, count));
@@ -114,7 +133,10 @@ int main()
 	analytics.AddCommands(SIGNAGE_ID, GetCommandSelection(SIGNAGE_ID, count));
 	analytics.GatherUsage();
 
-	int ret = SendAnalytics(SERVER_IP, SERVER_PORT, analytics);
+	unsigned short portno = std::stoi(port);
+
+	// Do the send (and receive)
+	int ret = SendAnalytics(server, portno, analytics);
 
 	return 0;
 }
