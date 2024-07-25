@@ -79,7 +79,7 @@ int InsertDatabase(const std::shared_ptr<sql::Connection> &db, const std::string
 		}
 	catch (nlohmann::json::parse_error &ex)
 		{
-		std::cerr << ex.what() << "\n";
+		std::cerr << ex.what() << "\nInput:\n" << jstr << "\n";
 		return 0;
 		}
 

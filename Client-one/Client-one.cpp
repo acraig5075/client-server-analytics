@@ -80,7 +80,7 @@ bool SendAnalytics(const std::string &server, unsigned short port, const Analyti
 		}
 	else if (result == 0)
 		{
-		std::cerr << "Connection timed out.\n";
+		std::cerr << "Establishing the connection timed out.\n";
 		closesocket(socket);
 		WSACleanup();
 		return false;
@@ -98,10 +98,22 @@ bool SendAnalytics(const std::string &server, unsigned short port, const Analyti
 		std::cout << "Connection established.\n";
 		}
 
+	//// Switch the socket to blocking mode before sending data
+	//mode = 0; // 0 means blocking mode
+	//result = ioctlsocket(socket, FIONBIO, &mode);
+	//if (result != NO_ERROR)
+	//	{
+	//	std::cerr << "ioctlsocket failed with error: " << WSAGetLastError() << "\n";
+	//	closesocket(socket);
+	//	WSACleanup();
+	//	return 1;
+	//	}
+
 	// Send message in chunks
 	std::string message = analytics.ToJson();
 	int bytesSent = 0;
 	const size_t BUFFERSIZE = 1024;
+	std::string txError;
 	for (size_t offset = 0; offset < message.size(); offset += bytesSent)
 		{
 		size_t bytesToSend = message.size() - offset;
@@ -111,12 +123,30 @@ bool SendAnalytics(const std::string &server, unsigned short port, const Analyti
 		bytesSent = ::send(socket, &message[offset], static_cast<int>(bytesToSend), 0);
 		if (bytesSent == SOCKET_ERROR)
 			{
-			std::cout << "Tx: Failed\n";
+			txError = "Tx: Failed (Socket error)";
+			break;
+			}
+		else if (bytesSent != bytesToSend)
+			{
+			txError = "Tx: Failed (Sent bytes mismatch)";
 			break;
 			}
 		}
-	std::cout << "Tx: OK\n";
 
+	if (txError.empty())
+		std::cout << "Tx: OK\n";
+	else
+		std::cout << txError << "\n";
+
+	// Explicitly flush the socket to ensure all data is sent
+	result = ::shutdown(socket, SD_SEND);
+	if (result == SOCKET_ERROR)
+		{
+		std::cerr << "shutdown failed with error: " << WSAGetLastError() << "\n";
+		closesocket(socket);
+		WSACleanup();
+		return false;
+		}
 
 	// Wait for acknowledgment
 	char buffer[256] = { 0 };
