@@ -83,6 +83,9 @@ Server::Server(boost::asio::io_service &io, boost::asio::ip::port_type port, Pro
 	: m_acceptor(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 	, m_pc(pc)
 {
+	std::cout << "Server running ... yes\n";
+	std::cout << "Listening on port " << port << " ...\n";
+
 	StartAccept();
 }
 

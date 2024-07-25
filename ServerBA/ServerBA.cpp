@@ -88,8 +88,6 @@ int main(int argc, char *argv[])
 
 	ProducerConsumer pc(mysql);
 
-	std::cout << "Listening on port " << port << " ...\n";
-
 	try
 		{
 		boost::asio::io_service io;
