@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 	std::string dbuser = params["user"].as<std::string>();
 	std::string dbpass = params["pass"].as<std::string>();
 
-	sql::Connection *mysql = nullptr;
+	std::shared_ptr<sql::Connection> mysql;
 
 #if defined(_WIN32_WINNT)
 #pragma warning(push)
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 			options["OPT_CONNECT_TIMEOUT"] = 5;
 
 			std::cout << "Connecting to MySQL " << dbuser << "@" << dbhost<< " ...\n";
-			mysql = driver->connect(options);
+			mysql = std::shared_ptr<sql::Connection>(driver->connect(options));
 			}
 		}
 	catch (sql::SQLException &e)
@@ -225,8 +225,6 @@ int main(int argc, char *argv[])
 		}
 
 	std::cout << "Ending.\n";
-
-	delete mysql;
 
 	return 0;
 }

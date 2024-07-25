@@ -2,8 +2,8 @@
 #include "../Utilities/SqlUtils.h"
 #include <iostream>
 
-ProducerConsumer::ProducerConsumer(sql::Connection *db)
-	: m_dbm(db)
+ProducerConsumer::ProducerConsumer(const std::shared_ptr<sql::Connection> &db)
+	: m_db(db)
 {
 	m_thread = std::thread(&ProducerConsumer::Consume, this);
 }
@@ -17,7 +17,7 @@ void ProducerConsumer::Produce(const std::string &str)
 
 void ProducerConsumer::Consume()
 {
-	if (!m_dbm)
+	if (!m_db)
 		return;
 
 	while (true)
@@ -34,7 +34,7 @@ void ProducerConsumer::Consume()
 			{
 			int inserts = 0;
 			
-			inserts = InsertDatabase(m_dbm, m_queue.front());
+			inserts = InsertDatabase(m_db, m_queue.front());
 
 			m_queue.pop();
 

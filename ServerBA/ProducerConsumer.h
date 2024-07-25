@@ -14,14 +14,14 @@ namespace sql
 class ProducerConsumer
 {
 public:
-	ProducerConsumer(sql::Connection *db);
+	ProducerConsumer(const std::shared_ptr<sql::Connection> &db);
 
 	void Produce(const std::string &str);
 	void Consume();
 	void StopConsuming();
 
 private:
-	sql::Connection *m_dbm = nullptr;
+	const std::shared_ptr<sql::Connection> &m_db = nullptr;
 	std::queue<std::string> m_queue;
 	std::condition_variable m_cv;
 	std::thread m_thread;

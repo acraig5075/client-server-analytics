@@ -66,7 +66,7 @@ std::string TrimRight(const std::string &str, const std::string &chars)
 	return{};
 }
 
-int InsertDatabase(sql::Connection *db, const std::string &jstr)
+int InsertDatabase(const std::shared_ptr<sql::Connection> &db, const std::string &jstr)
 {
 	if (!db)
 		return 0;
