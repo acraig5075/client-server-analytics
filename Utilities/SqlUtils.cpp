@@ -4,7 +4,6 @@
 #include <sstream>
 #include <format>
 #include <nlohmann/json.hpp>
-#include <sqlite3.h>
 #include <mysql_connection.h>
 #include <cppconn/prepared_statement.h>
 
@@ -65,96 +64,6 @@ std::string TrimRight(const std::string &str, const std::string &chars)
 		return str.substr(0, endpos + 1);
 		}
 	return{};
-}
-
-int InsertDatabase(sqlite3 *db, const std::string &jstr)
-{
-	if (!db)
-		return 0;
-
-	nlohmann::json json;
-
-	try
-		{
-		json = nlohmann::json::parse(jstr);
-		}
-	catch (nlohmann::json::parse_error &ex)
-		{
-		std::cerr << ex.what() << "\n";
-		}
-
-	std::string sql;
-
-	::sqlite3_exec(db, "BEGIN TRANSACTION;", nullptr, nullptr, nullptr);
-
-	sql = std::format(R"(INSERT INTO InstanceTbl (DateTime, License, PCName, ProgramCode, ProgramVersion, ProgramRelease) VALUES ('{}', '{}', '{}', '{}', {}, {});)",
-		json.at("datetime").template get<std::string>(),
-		json.at("code").template get<std::string>(),
-		json.at("pcname").template get<std::string>(),
-		json.at("program").template get<std::string>(),
-		json.at("version").template get<int>(),
-		json.at("release").template get<int>()
-		);
-
-	sqlite3_int64 instanceID = -1;
-	if (SQLITE_OK == ::sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr))
-		instanceID = ::sqlite3_last_insert_rowid(db);
-
-	if (instanceID == -1)
-		{
-		::sqlite3_exec(db, "ROLLBACK;", nullptr, nullptr, nullptr);
-		return 0;
-		}
-
-	int numInserts = 0;
-
-	nlohmann::json subjson = json["analytics"];
-
-	for (auto &v : subjson)
-		{
-		std::string moduleName = v.at("module").template get<std::string>();
-		std::string usage = v.at("usage").template get<std::string>();
-
-		std::string tableName = FindTableName(moduleName);
-		if (tableName.empty())
-			continue;
-
-		sql = std::format(R"(INSERT INTO {} (InstanceID, Command, Count) VALUES )", tableName);
-
-		std::stringstream ss(usage);
-		std::string word;
-		int values = 0;
-
-		while (ss >> word)
-			{
-			size_t found = word.find(',');
-			std::string command = word.substr(0, found);
-			std::string second = word.substr(found + 1);
-			int count = std::atoi(second.c_str());
-
-			if (command.empty() || second.empty() || count == 0)
-				continue;
-
-			sql += std::format(R"(({}, '{}', {}), )", instanceID, command, count);
-			values++;
-			}
-
-		sql = TrimRight(sql, ", ");
-		sql.append(";");
-
-		if (values > 0)
-			{
-			if (SQLITE_OK == ::sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr))
-				numInserts++;
-			}
-		}
-
-	if (numInserts > 0)
-		::sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr);
-	else
-		::sqlite3_exec(db, "ROLLBACK;", nullptr, nullptr, nullptr);
-
-	return numInserts;
 }
 
 int InsertDatabase(sql::Connection *db, const std::string &jstr)

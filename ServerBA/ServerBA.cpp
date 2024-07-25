@@ -3,7 +3,6 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <sqlite3.h>
 #include <iostream>
 #include <filesystem>
 #include <cxxopts.hpp>
@@ -133,11 +132,9 @@ int main(int argc, char *argv[])
 	cxxopts::Options options("serverba.exe", "Analytics server, by Alasdair Craig");
 	options.add_options()
 		("l,listen", "Server port to listen on", cxxopts::value<unsigned short>()->default_value("54321"))
-		("t,target", "Target database [mysql|sqlite]", cxxopts::value<std::string>()->default_value("mysql"))
-		("m,mysql", "MySQL target [server]", cxxopts::value<std::string>()->default_value("localhost"))
-		("u,user", "MySQL user [user], alternatively env var ANALYTICS_MYSQL_USER", cxxopts::value<std::string>()->default_value(""))
+		("h,host", "MySQL hostname [host]", cxxopts::value<std::string>()->default_value("localhost"))
+		("u,user", "MySQL username [user], alternatively env var ANALYTICS_MYSQL_USER", cxxopts::value<std::string>()->default_value(""))
 		("p,pass", "MySQL password [pass], alternatively env var ANALYTICS_MYSQL_PASS", cxxopts::value<std::string>()->default_value(""))
-		("s,sqlite", "Sqlite target [filename]", cxxopts::value<std::string>()->default_value("analytics.db"))
 		("c,create", "Create sqlite filename, or overwrite if existing")
 		("h,help", "Print usage");
 
@@ -150,131 +147,74 @@ int main(int argc, char *argv[])
 		}
 
 	unsigned short port = params["listen"].as<unsigned short>();
-	std::string target = params["target"].as<std::string>();
 	std::string dbserver = params["mysql"].as<std::string>();
 	std::string dbuser = params["user"].as<std::string>();
 	std::string dbpass = params["pass"].as<std::string>();
-	std::filesystem::path dbpath = params["sqlite"].as<std::string>();
 	bool create = params.count("create") != 0;
 
-	// Two optional targets, having one is mandatory
 	sql::Connection *mysql = nullptr;
-	sqlite3 *sqlite = nullptr;
 
-	if (target == "mysql")
-		{
 #pragma warning(push)
 #pragma warning(disable: 4996)
-		// Revert to environment variables if not set on command-line
-		if (dbuser.empty())
-			{
-			const char *env = std::getenv("ANALYTICS_MYSQL_USER");
-			if (env)
-				dbuser = env;
-			}
-		if (dbpass.empty())
-			{
-			const char *env = std::getenv("ANALYTICS_MYSQL_PASS");
-			if (env)
-				dbpass = env;
-			}
+	// Revert to environment variables if not set on command-line
+	if (dbuser.empty())
+		{
+		const char *env = std::getenv("ANALYTICS_MYSQL_USER");
+		if (env)
+			dbuser = env;
+		}
+	if (dbpass.empty())
+		{
+		const char *env = std::getenv("ANALYTICS_MYSQL_PASS");
+		if (env)
+			dbpass = env;
+		}
 #pragma warning(pop)
 
-		std::string error;
-		try
+	std::string error;
+	try
+		{
+		sql::Driver *driver = get_driver_instance();
+		if (driver)
 			{
-			sql::Driver *driver = get_driver_instance();
-			if (driver)
-				{
-				sql::ConnectOptionsMap options;
-				options["hostName"] = dbserver;
-				options["userName"] = dbuser;
-				options["password"] = dbpass;
-				options["schema"] = "Analytics";
-				options["OPT_CONNECT_TIMEOUT"] = 5;
+			sql::ConnectOptionsMap options;
+			options["hostName"] = dbserver;
+			options["userName"] = dbuser;
+			options["password"] = dbpass;
+			options["schema"] = "Analytics";
+			options["OPT_CONNECT_TIMEOUT"] = 5;
 
-				std::cout << "Connecting to MySQL " << dbuser << "@" << dbserver << " ...\n";
-				mysql = driver->connect(options);
-				}
-			}
-		catch (sql::SQLException &e)
-			{
-			error = e.what();
-			}
-
-		if (mysql && mysql->isValid() && error.empty())
-			{
-			std::cout << "MySQL database OK ... yes\n";
-			}
-		else
-			{
-			std::cout 
-				<< "MySQL database OK ... no\n"
-				<< "Error: "
-				<< error
-				<< "\nAborting.\n";
-			return EXIT_FAILURE;
+			std::cout << "Connecting to MySQL " << dbuser << "@" << dbserver << " ...\n";
+			mysql = driver->connect(options);
 			}
 		}
-	else if (target == "sqlite")
+	catch (sql::SQLException &e)
 		{
-		if (create && std::filesystem::exists(dbpath))
-			{
-			std::error_code ec;
-			if (!std::filesystem::remove(dbpath, ec))
-				{
-				std::cerr
-					<< "Unable to remove existing sqlite database\n"
-					<< ec.message()
-					<< "\n";
-				}
-			}
+		error = e.what();
+		}
 
-		int error = sqlite3_open(dbpath.string().c_str(), &sqlite);
-
-		if (error == 0)
-			std::cout << "Sqlite database OK ... yes\n";
-		else
-			{
-			std::cerr 
-				<< "Sqlite database OK ... no\n" 
-				<< "Error: " 
-				<< sqlite3_errmsg(sqlite)
-				<< "\nAborting.\n";
-			return EXIT_FAILURE;
-			}
-
-		if (create)
-			{
-			::sqlite3_exec(sqlite, CreateInstanceTable().c_str(), nullptr, nullptr, nullptr);
-			::sqlite3_exec(sqlite, CreateModuleTable("SurveyTbl").c_str(), nullptr, nullptr, nullptr);
-			::sqlite3_exec(sqlite, CreateModuleTable("TerrainTbl").c_str(), nullptr, nullptr, nullptr);
-			::sqlite3_exec(sqlite, CreateModuleTable("RoadTbl").c_str(), nullptr, nullptr, nullptr);
-			::sqlite3_exec(sqlite, CreateModuleTable("SewerTbl").c_str(), nullptr, nullptr, nullptr);
-			::sqlite3_exec(sqlite, CreateModuleTable("StormTbl").c_str(), nullptr, nullptr, nullptr);
-			::sqlite3_exec(sqlite, CreateModuleTable("WaterTbl").c_str(), nullptr, nullptr, nullptr);
-			::sqlite3_exec(sqlite, CreateModuleTable("SignageTbl").c_str(), nullptr, nullptr, nullptr);
-			}
+	if (mysql && mysql->isValid() && error.empty())
+		{
+		std::cout << "MySQL database OK ... yes\n";
 		}
 	else
 		{
-		std::cout << "No valid target specified\nAborting.\n";
+		std::cout 
+			<< "MySQL database OK ... no\n"
+			<< "Error: "
+			<< error
+			<< "\nAborting.\n";
 		return EXIT_FAILURE;
 		}
 
-	ProducerConsumer *pc = nullptr; // TODO: Make stack variable if sqlite support is removed.
-
-	if (mysql)
-		pc = new ProducerConsumer(mysql);
-	else if (sqlite)
-		pc = new ProducerConsumer(sqlite);
+	ProducerConsumer pc(mysql);
 
 	std::cout << "Listening on port " << port << " ...\n";
 
 	try
 		{
 		boost::asio::io_service io;
-		Server server(io, port, *pc);
+		Server server(io, port, pc);
 		io.run();
 		}
 	catch (std::exception &ex)
@@ -284,7 +224,6 @@ int main(int argc, char *argv[])
 
 	std::cout << "Ending.\n";
 
-	delete pc;
 	delete mysql;
 
 	return 0;

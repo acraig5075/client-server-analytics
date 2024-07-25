@@ -1,7 +1,7 @@
 # Compiler and linker flags
 CXX = g++
 CXXFLAGS = -std=c++20 -I/usr/include -I/usr/local/include -Wall
-LDFLAGS = -L/usr/lib -L/usr/local/lib -Lbin -lsqlite3 -lmysqlcppconn -l:utilities.a
+LDFLAGS = -L/usr/lib -L/usr/local/lib -Lbin -lmysqlcppconn -l:utilities.a
 LDFLAGS_QUERY = -L/usr/lib -lmysqlcppconn
 
 # Paths to source files

@@ -1,13 +1,6 @@
 #include "ProducerConsumer.h"
 #include "../Utilities/SqlUtils.h"
 #include <iostream>
-#include <sqlite3.h>
-
-ProducerConsumer::ProducerConsumer(sqlite3 *db)
-	: m_dbs(db)
-{
-	m_thread = std::thread(&ProducerConsumer::consume, this);
-}
 
 ProducerConsumer::ProducerConsumer(sql::Connection *db)
 	: m_dbm(db)
@@ -24,7 +17,7 @@ void ProducerConsumer::produce(const std::string &str)
 
 void ProducerConsumer::consume()
 {
-	if (!m_dbs && !m_dbm)
+	if (!m_dbm)
 		return;
 
 	while (true)
@@ -41,10 +34,7 @@ void ProducerConsumer::consume()
 			{
 			int inserts = 0;
 			
-			if (m_dbm)
-				inserts = InsertDatabase(m_dbm, m_queue.front());
-			else if (m_dbs)
-				inserts = InsertDatabase(m_dbs, m_queue.front());
+			inserts = InsertDatabase(m_dbm, m_queue.front());
 
 			m_queue.pop();
 

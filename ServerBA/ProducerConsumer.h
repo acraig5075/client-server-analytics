@@ -6,7 +6,6 @@
 #include <queue>
 #include <string>
 
-struct sqlite3;
 namespace sql
 	{
 	class Connection;
@@ -15,7 +14,6 @@ namespace sql
 class ProducerConsumer
 {
 public:
-	ProducerConsumer(sqlite3 *db);
 	ProducerConsumer(sql::Connection *db);
 
 	void produce(const std::string &str);
@@ -23,7 +21,6 @@ public:
 	void stopConsuming();
 
 private:
-	sqlite3 *m_dbs = nullptr;
 	sql::Connection *m_dbm = nullptr;
 	std::queue<std::string> m_queue;
 	std::condition_variable m_cv;
