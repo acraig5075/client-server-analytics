@@ -193,6 +193,7 @@ int main(int argc, char *argv[])
 				options["schema"] = "Analytics";
 				options["OPT_CONNECT_TIMEOUT"] = 5;
 
+				std::cout << "Connecting to MySQL " << dbuser << "@" << dbserver << " ...\n";
 				mysql = driver->connect(options);
 				}
 			}
@@ -260,8 +261,6 @@ int main(int argc, char *argv[])
 		std::cout << "No valid target specified\nAborting.\n";
 		return EXIT_FAILURE;
 		}
-
-	std::cout << "Starting consumer ...\n";
 
 	ProducerConsumer *pc = nullptr; // TODO: Make stack variable if sqlite support is removed.
 
