@@ -137,9 +137,11 @@
   <ItemGroup>
     <ClCompile Include="ProducerConsumer.cpp" />
     <ClCompile Include="ServerBA.cpp" />
+    <ClCompile Include="ServerConnection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ProducerConsumer.h" />
+    <ClInclude Include="ServerConnection.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utilities\Utilities.vcxproj">

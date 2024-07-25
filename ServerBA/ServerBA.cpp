@@ -1,131 +1,27 @@
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <iostream>
-#include <filesystem>
 #include <cxxopts.hpp>
 #include <mysql_connection.h>
 #include <mysql_driver.h>
 #include <cppconn/prepared_statement.h>
+#include "ServerConnection.h"
 #include "ProducerConsumer.h"
-#include "../Utilities/SqlUtils.h"
 
 
-const size_t BUF_SIZE = 100;
-
-class ServerConnection : public std::enable_shared_from_this<ServerConnection>
+// Get a system environment variable
+std::string GetEnvironmentVar(const std::string &varName)
 {
-public:
-	ServerConnection(const boost::asio::any_io_executor &ex, ProducerConsumer &pc)
-		: m_socket(ex)
-		, m_pc(pc)
-	{
-		m_message += std::to_string(++m_counter);
-		std::fill(m_data.begin(), m_data.end(), '\0');
-	}
-
-	static std::shared_ptr<ServerConnection> Create(const boost::asio::any_io_executor &ex, ProducerConsumer &pc)
-	{
-		return std::shared_ptr<ServerConnection>(new ServerConnection(ex, pc));
-	}
-
-	boost::asio::ip::tcp::socket &GetSocket()
-	{
-		return m_socket;
-	}
-
-	void Start()
-	{
-		m_socket.async_read_some(boost::asio::buffer(m_data),
-														boost::bind(&ServerConnection::HandleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
-	}
-
-
-private:
-	// Handle the read operation completion.
-	void HandleRead(const boost::system::error_code &error, size_t bytes_transferred)
-	{
-		if (!error)
-			{
-			m_recv += std::string{ &m_data[0], bytes_transferred };
-
-			if (bytes_transferred == BUF_SIZE)
-				{
-				// read more
-				m_socket.async_read_some(boost::asio::buffer(m_data),
-					boost::bind(&ServerConnection::HandleRead, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
-				}
-			else
-				{
-				std::cout 
-					<< "Rx: OK\n";
-
-				m_pc.Produce(m_recv);
-
-				// acknowledge the client
-				boost::asio::async_write(m_socket, boost::asio::buffer(m_message),
-					std::bind(&ServerConnection::HandleWrite, shared_from_this(), std::placeholders::_1, std::placeholders::_2));
-				}
-			}
-		else
-			{
-			std::cout << "Error: " << error.message() << std::endl;
-			}
-	}
-
-	// Handle the write operation completion.
-	void HandleWrite(const boost::system::error_code & /*error*/, size_t /*bytes_transferred*/)
-	{
-		std::cout << "Tx: Ack " << m_counter << "\n";
-	}
-
-private:
-	boost::asio::ip::tcp::socket m_socket;
-	std::string m_message{ "Ack " };
-	std::string m_terminal{ "<END>" };
-	std::array<char, BUF_SIZE> m_data;
-	std::string m_recv;
-	static int m_counter;
-	ProducerConsumer &m_pc;
-};
-
-int ServerConnection::m_counter = 0;
-
-
-class Server
-{
-public:
-	Server(boost::asio::io_service &io, boost::asio::ip::port_type port, ProducerConsumer &pc)
-		: m_acceptor(io, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
-		, m_pc(pc)
-	{
-		StartAccept();
-	}
-
-	void StartAccept()
-	{
-		const boost::asio::any_io_executor &ex = m_acceptor.get_executor();
-		std::shared_ptr<ServerConnection> connection = ServerConnection::Create(ex, m_pc);
-		boost::asio::ip::tcp::socket &socket = connection->GetSocket();
-		m_acceptor.async_accept(socket, std::bind(&Server::HandleAccept, this, connection, std::placeholders::_1));
-	}
-
-	void HandleAccept(std::shared_ptr<ServerConnection> connection, const boost::system::error_code &ec)
-	{
-		if (!ec)
-			{
-			connection->Start();
-			}
-		StartAccept();
-	}
-
-private:
-	boost::asio::ip::tcp::acceptor m_acceptor;
-	ProducerConsumer &m_pc;
-};
-
+#if defined(_WIN32_WINNT)
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#endif
+		const char *env = std::getenv(varName.c_str());
+		if (env)
+			return std::string{ env };
+		return {};
+#if defined(_WIN32_WINNT)
+#pragma warning(pop)
+#endif
+}
 
 int main(int argc, char *argv[])
 {
@@ -150,30 +46,15 @@ int main(int argc, char *argv[])
 	std::string dbuser = params["user"].as<std::string>();
 	std::string dbpass = params["pass"].as<std::string>();
 
-	std::shared_ptr<sql::Connection> mysql;
-
-#if defined(_WIN32_WINNT)
-#pragma warning(push)
-#pragma warning(disable: 4996)
-#endif
 	// Revert to environment variables if not set on command-line
 	if (dbuser.empty())
-		{
-		const char *env = std::getenv("ANALYTICS_MYSQL_USER");
-		if (env)
-			dbuser = env;
-		}
+		dbuser = GetEnvironmentVar("ANALYTICS_MYSQL_USER");
 	if (dbpass.empty())
-		{
-		const char *env = std::getenv("ANALYTICS_MYSQL_PASS");
-		if (env)
-			dbpass = env;
-		}
-#if defined(_WIN32_WINNT)
-#pragma warning(pop)
-#endif
+		dbpass = GetEnvironmentVar("ANALYTICS_MYSQL_PASS");
 
+	std::shared_ptr<sql::Connection> mysql;
 	std::string error;
+
 	try
 		{
 		sql::Driver *driver = get_driver_instance();
@@ -201,11 +82,7 @@ int main(int argc, char *argv[])
 		}
 	else
 		{
-		std::cout 
-			<< "MySQL database OK ... no\n"
-			<< "Error: "
-			<< error
-			<< "\nAborting.\n";
+		std::cout << "MySQL database OK ... no\nError: " << error << "\nAborting.\n";
 		return EXIT_FAILURE;
 		}
 

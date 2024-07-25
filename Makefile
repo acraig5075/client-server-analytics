@@ -7,7 +7,7 @@ LDFLAGS_QUERY = -L/usr/lib -lmysqlcppconn
 # Paths to source files
 UTILITIES_SRC = Utilities/pch.cpp Utilities/Commands.cpp Utilities/Analytics.cpp Utilities/SqlUtils.cpp
 CLIENT_SRC = Client/Client.cpp
-SERVER_SRC = ServerBA/ProducerConsumer.cpp ServerBA/ServerBA.cpp 
+SERVER_SRC = ServerBA/ServerConnection.cpp ServerBA/ProducerConsumer.cpp ServerBA/ServerBA.cpp 
 QUERY_SRC = Query/Query.cpp
 
 # Object files
